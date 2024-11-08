@@ -67,11 +67,6 @@ const Showimage = ({ route, navigation }) => {
     }
   };
 
-  const handleEdit = () => {
-    setModalVisible(false);
-    navigation.navigate('EditImageScreen', { imageUri: selectedImage.uri });
-  };
-
   const renderImage = ({ item, index }) => (
     <TouchableOpacity
       onPress={() => handleImagePress(index)}
@@ -86,7 +81,14 @@ const Showimage = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.playlistText}>{playlistname}</Text>
+    
+      <View style={styles.header}>
+        <TouchableOpacity style={{borderRadius:4,height:32,borderColor:'black',borderWidth:2,width:50,justifyContent:'center',alignItems:'center'}} onPress={() => navigation.goBack()}>
+          <Text style={{fontSize:18}}>{`<--`}</Text>
+        </TouchableOpacity>
+        <Text style={styles.playlistText}>{playlistname}</Text>
+      </View>
+
       {images.length > 0 ? (
         <FlatList
           data={images}
@@ -108,15 +110,9 @@ const Showimage = ({ route, navigation }) => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <TouchableOpacity style={styles.modalButton} onPress={handleEdit}>
-              <Text style={styles.modalButtonText}>Edit</Text>
-            </TouchableOpacity>
             <TouchableOpacity
               style={styles.modalButton}
-              onPress={() => {
-                setModalVisible(false);
-                setRenameModalVisible(true);
-              }}
+              onPress={() => setRenameModalVisible(true)}
             >
               <Text style={styles.modalButtonText}>Rename</Text>
             </TouchableOpacity>
@@ -143,10 +139,9 @@ const Showimage = ({ route, navigation }) => {
               value={input}
               onChangeText={setInput}
             />
-            <View style={{flexDirection:'row', justifyContent:'space-between',width:'100%'}}>
-            <Button title="Cancel" onPress={() => setRenameModalVisible(false)} />
-            <Button title="Rename" onPress={handleRename} />
-
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+              <Button title="Cancel" onPress={() => setRenameModalVisible(false)} />
+              <Button title="Rename" onPress={handleRename} />
             </View>
           </View>
         </View>
@@ -160,10 +155,15 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
   },
-  playlistText: {
-    fontSize: 18,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
-    marginLeft: 6,
+  },
+  playlistText: {
+    fontSize: 20,
+    marginLeft: '30%',
+    
   },
   row: {
     justifyContent: 'space-between',

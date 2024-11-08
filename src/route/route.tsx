@@ -34,6 +34,7 @@ const Route = () => {
     }}
     />
 
+
     </stack.Navigator>
 
    </NavigationContainer>

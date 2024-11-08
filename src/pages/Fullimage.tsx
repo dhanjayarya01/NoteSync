@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { View, Image, StyleSheet, Dimensions, Text } from 'react-native';
-import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, PanGestureHandler, State, PinchGestureHandler } from 'react-native-gesture-handler';
 
 const { width, height } = Dimensions.get('window');
 
 const Fullimage = ({ route }) => {
   const { images, initialIndex } = route.params;
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [scale, setScale] = useState(1);  
+  const [previousScale, setPreviousScale] = useState(1);  
 
   const handleSwipe = (direction) => {
     if (direction === 'left' && currentIndex < images.length - 1) {
@@ -17,7 +19,7 @@ const Fullimage = ({ route }) => {
   };
 
   const onSwipeStateChange = (event) => {
-    if (event.nativeEvent.state === State.END) {  // Detects the end of a swipe gesture
+    if (event.nativeEvent.state === State.END) {
       const { translationX } = event.nativeEvent;
       if (translationX < -50) {
         handleSwipe('left');
@@ -27,13 +29,32 @@ const Fullimage = ({ route }) => {
     }
   };
 
+  
+  const onPinchGestureEvent = (event) => {
+    const newScale = previousScale * event.nativeEvent.scale;
+    setScale(newScale);  
+  };
+
+  const onPinchStateChange = (event) => {
+    if (event.nativeEvent.state === State.END) {
+      setPreviousScale(scale);  
+    }
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PanGestureHandler onHandlerStateChange={onSwipeStateChange}>
-        <View style={styles.container}>
-          <Image source={{ uri: images[currentIndex].uri }} style={styles.fullImage} />
-          <Text style={styles.imageText}>{images[currentIndex].id}</Text>
-        </View>
+        <PinchGestureHandler
+          onGestureEvent={onPinchGestureEvent}
+          onHandlerStateChange={onPinchStateChange}>
+          <View style={styles.container}>
+            <Image
+              source={{ uri: images[currentIndex].uri }}
+              style={[styles.fullImage, { transform: [{ scale: scale }] }]}  
+            />
+            <Text style={styles.imageText}>{images[currentIndex].id}</Text>
+          </View>
+        </PinchGestureHandler>
       </PanGestureHandler>
     </GestureHandlerRootView>
   );
