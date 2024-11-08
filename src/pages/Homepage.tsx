@@ -2,16 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ImageBackground, Modal, TextInput, Button, useColorScheme, Dimensions, Alert } from 'react-native';
 import RNFS, { appendFile } from 'react-native-fs';  
 import { launchCamera } from 'react-native-image-picker';
+import { useNavigation } from '@react-navigation/native';
+
 
 const Homepage = () => {
+
+ const navigation=useNavigation()
+
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
   const [playlists, setPlaylists] = useState([]);
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [FileName_modalVisible, setFileName_modalVisible] = useState(false);
-  const [editMode, setEditMode] = useState(false); 
-  const [playlistToEdit, setPlaylistToEdit] = useState(null); 
+  const [editMode, setEditMode] = useState(false); // State to toggle edit mode
+  const [playlistToEdit, setPlaylistToEdit] = useState(null); // Store playlist being edited
   const screenWidth = Dimensions.get('window').width;
   const itemWidth = screenWidth / 3 - 20;
   const [image_filename, setImage_filename] = useState("");
@@ -32,7 +37,7 @@ const Homepage = () => {
 
       setPlaylists(playlists);
     } catch (error) {
-      Alert.alert("Create Your First Playlist By Just Pressing On ADD NEW Button ")
+      // Alert.alert("CREATE YOU FIRST PLAYLIST")
       console.error('Error loading playlists:', error);
     }
   };
@@ -82,7 +87,8 @@ const Homepage = () => {
     <TouchableOpacity
       style={[styles.playlistContainer, { width: itemWidth }]}
       onPress={() => editMode?handlePlaylistOptions(item):openCamera(item.id,item.name)} 
-    
+      onLongPress={()=>navigation.navigate('Showimage',{playlist:item.id,playlistname:item.name})}
+      delayLongPress={200}
     >
       <ImageBackground 
         source={require('../public/file.png')} 
@@ -130,7 +136,7 @@ const Homepage = () => {
   const renamePlaylist = (playlist) => {
     setNewPlaylistName(playlist.name);
     setModalVisible(true);
-    setPlaylistToEdit(playlist); 
+    setPlaylistToEdit(playlist); // Set the playlist to be renamed
   };
 
   const deletePlaylist = async (playlist) => {
@@ -150,7 +156,7 @@ const Homepage = () => {
       const folderExists = await RNFS.exists(folderPath);
       
       if (!folderExists) {
-        
+        // Create the folder
         await RNFS.mkdir(folderPath);
         console.log('Folder created for playlist:', folderPath);
       } else {
@@ -176,8 +182,8 @@ const Homepage = () => {
   };
 
   const cancelEdit = () => {
-    setEditMode(false); 
-    setPlaylistToEdit(null); 
+    setEditMode(false); // Reset edit mode
+    setPlaylistToEdit(null); // Clear selected playlist for editing
   };
 
   const Handle_checkbox_click=()=>{
@@ -219,6 +225,9 @@ const Homepage = () => {
 
   return (
     <View style={[styles.container, isDarkMode ? styles.darkBackground : styles.lightBackground]}>
+       <View style={[styles.header, isDarkMode ? styles.darkHeader : styles.lightHeader]}>
+          <Text style={[styles.title, isDarkMode ? styles.darkTitle : styles.lightTitle]}>NOTE SYNC</Text>
+        </View>
       <FlatList
         data={playlists}
         renderItem={renderPlaylistItem}
@@ -273,6 +282,7 @@ const Homepage = () => {
             <View style={styles.modalButtons}>
               <Button title="Cancel" onPress={() => setModalVisible(false)} />
               <Button title="OK" onPress={addNewPlaylist} />
+              {/* <TouchableOpacity><Text>ok</Text></TouchableOpacity> */}
             </View>
           </View>
         </View>
@@ -294,7 +304,6 @@ const Homepage = () => {
               onChangeText={setImage_filename}
             />
             <View style={{}}>
-              
               <TouchableOpacity 
                style={{height:32,width:'100%',flexDirection:'row',marginBottom:14}}
                onPress={Handle_checkbox_click}
@@ -336,13 +345,31 @@ const styles = StyleSheet.create({
   checkbox:{
   height:25,
   width:24,
-  
-  
+  },
+
+  header: {
+    padding: 12,
+    alignItems: 'center',
+  },
+  lightHeader: {
+    backgroundColor: 'blue',
+  },
+  darkHeader: {
+    backgroundColor: 'black',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  lightTitle: {
+    color: '#ffffff',
+  },
+  darkTitle: {
+    color: 'white',
   },
   container: {
     flex: 1,
-    paddingHorizontal: 10,
-    paddingTop: 20,
+ 
   },
   lightBackground: {
     backgroundColor: '#f5f5f5',
