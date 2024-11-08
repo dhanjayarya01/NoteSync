@@ -3,21 +3,22 @@ import React, { useEffect, useState } from 'react';
 import RNFS from 'react-native-fs';
 
 const Showimage = ({ route, navigation }) => {
-  const { playlist } = route.params;
-  const { playlistname } = route.params;
+  const { playlist, playlistname } = route.params;
   const [images, setImages] = useState([]);
-  
 
-
- 
   useEffect(() => {
-    
     const loadImages = async () => {
       try {
-        const files = await RNFS.readDir(playlist); 
+        const files = await RNFS.readDir(playlist);
         const imageFiles = files
-          .filter(file => file.isFile() && /\.(jpg|jpeg|png)$/i.test(file.name)) 
-          .map(file => ({ id: file.name, uri: 'file://' + file.path })); 
+          .filter(file => file.isFile() && /\.(jpg|jpeg|png)$/i.test(file.name))
+          .map(file => ({
+            id: file.name,
+            uri: 'file://' + file.path,
+            mtime: file.mtime, // modification time to sort by date
+          }))
+          .sort((a, b) => b.mtime - a.mtime); // Sort newest images first
+
         setImages(imageFiles);
       } catch (error) {
         console.error('Error reading directory:', error);
@@ -27,15 +28,14 @@ const Showimage = ({ route, navigation }) => {
     loadImages();
   }, []);
 
-  const handleImagePress = (imageUri) => {
-    console.log("uri in show ",imageUri)
-    navigation.navigate('Fullimage', {imageuri:imageUri });
+  const handleImagePress = (index) => {
+    navigation.navigate('Fullimage', { images, initialIndex: index });
   };
 
-  const renderImage = ({ item }) => (
-    <TouchableOpacity onPress={() => handleImagePress(item.uri)} style={styles.imageContainer}>
+  const renderImage = ({ item, index }) => (
+    <TouchableOpacity onPress={() => handleImagePress(index)} style={styles.imageContainer}>
       <Image source={{ uri: item.uri }} style={styles.image} />
-       <Text style={{marginLeft:5,marginTop:4}}>{item.id}</Text>
+      <Text style={{ marginLeft: 5, marginTop: 4 }}>{item.id}</Text>
     </TouchableOpacity>
   );
 
@@ -51,7 +51,7 @@ const Showimage = ({ route, navigation }) => {
           columnWrapperStyle={styles.row}
         />
       ) : (
-        <Text style={styles.noImageText}>No image on this playlist</Text>
+        <Text style={styles.noImageText}>No images in this playlist</Text>
       )}
     </View>
   );
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
   playlistText: {
     fontSize: 18,
     marginBottom: 10,
-    marginLeft:6
+    marginLeft: 6,
   },
   row: {
     justifyContent: 'space-between',
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     flex: 1,
     margin: 5,
-    marginBottom:7
+    marginBottom: 7,
   },
   image: {
     width: '100%',
