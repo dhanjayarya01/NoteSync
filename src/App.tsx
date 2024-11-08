@@ -18,16 +18,12 @@ const App = () => {
 
   const requestPermissions = async () => {
     
-    const cameraStatus = await request(PERMISSIONS.ANDROID.CAMERA); 
-    const iosCameraStatus = await request(PERMISSIONS.IOS.CAMERA);   
-
-    console.log('Camera permission:', cameraStatus);
-    console.log('iOS Camera permission:', iosCameraStatus);
-
-    
     const storageStatus = await request(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE);  
+    const cameraStatus = await request(PERMISSIONS.ANDROID.CAMERA); 
+    console.log('Camera permission:', cameraStatus);
+    const iosCameraStatus = await request(PERMISSIONS.IOS.CAMERA);   
     const iosStorageStatus = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);           
-
+    console.log('iOS Camera permission:', iosCameraStatus);
     console.log('Storage permission:', storageStatus);
     console.log('iOS Storage permission:', iosStorageStatus);
     
