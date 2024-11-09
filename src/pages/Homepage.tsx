@@ -24,6 +24,7 @@ const Homepage = () => {
   const [filename_start_no,setFilename_start_no]=useState(0)
   const [capturedImagePath,setCapturedImagePath]=useState('')
   const [capturedPlaylistPath,setCapturedPlaylistPath]=useState('')
+  const [renamemodel,setRenamemodel]=useState(false)
 
   const loadPlaylists = async () => {
     try {
@@ -36,6 +37,7 @@ const Homepage = () => {
       }));
 
       setPlaylists(playlists);
+      // console.log("the playlist path",playlists)
     } catch (error) {
       // Alert.alert("CREATE YOU FIRST PLAYLIST")
       console.error('Error loading playlists:', error);
@@ -44,9 +46,10 @@ const Homepage = () => {
 
   useEffect(() => {
     loadPlaylists(); 
-  }, []);
+  }, [playlists]);
 
   const openCamera = async (item_path, item_name) => {
+    console.log("the name of the ",item_name)
     setNewPlaylistName(item_name.trim())
 
     launchCamera({ mediaType: 'photo' }, async (response) => {
@@ -87,7 +90,7 @@ const Homepage = () => {
     <TouchableOpacity
       style={[styles.playlistContainer, { width: itemWidth }]}
       onPress={() => editMode?handlePlaylistOptions(item):openCamera(item.id,item.name)} 
-      onLongPress={()=>navigation.navigate('Showimage',{playlist:item.id,playlistname:item.name})}
+      onLongPress={()=>navigation.navigate('Showimage',{playlist:item?.id,playlistname:item?.name})}
       delayLongPress={200}
     >
       <ImageBackground 
@@ -116,7 +119,7 @@ const Homepage = () => {
         },
         {
           text: 'Rename',
-          onPress: () => renamePlaylist(playlist),
+          onPress: () =>setRenamemodel(true),
         },
         {
           text: 'Delete',
@@ -127,17 +130,33 @@ const Homepage = () => {
     );
   };
 
-  const openPlaylist = (playlist) => {
-    
-    console.log(`Opening playlist: ${playlist}`);
 
-  };
 
-  const renamePlaylist = (playlist) => {
-    setNewPlaylistName(playlist.name);
-    setModalVisible(true);
-    setPlaylistToEdit(playlist); // Set the playlist to be renamed
+
+
+  const renamePlaylist = async () => {
+    if (!newPlaylistName.trim()) {
+      Alert.alert('Error', 'Please enter a new playlist name.');
+      return;
+    }
+    try {
+      const oldPath = playlistToEdit.id;
+      const newPath = `${RNFS.ExternalDirectoryPath}/Notesync/${newPlaylistName}`;
+      const folderExists = await RNFS.exists(newPath);
+      if (folderExists) {
+        Alert.alert('Error', 'A playlist with this name already exists.');
+        return;
+      }
+      await RNFS.moveFile(oldPath, newPath);
+      setRenamemodel(false);
+      setNewPlaylistName('');
+      loadPlaylists();
+    } catch (error) {
+      console.error('Error renaming playlist:', error);
+      Alert.alert('Error', 'An error occurred while renaming the playlist.');
+    }
   };
+  
 
   const deletePlaylist = async (playlist) => {
     try {
@@ -218,7 +237,7 @@ const Homepage = () => {
       setCapturedPlaylistPath('')
       setImage_filename('')
     } catch (error) {
-      console.log("error while saving the file ")
+      console.log("error while saving the file ",error)
     }
 
   }
@@ -261,7 +280,7 @@ const Homepage = () => {
           <Text style={[isDarkMode ? styles.darkText : styles.lightText]}>ADD NEW</Text>
         </TouchableOpacity>
       </View>
-
+{/*model for new playlist */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -269,69 +288,136 @@ const Homepage = () => {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {playlistToEdit ? 'Rename Playlist' : 'Enter Playlist Name'}
+          <View style={[styles.modalContent,{backgroundColor:isDarkMode?'black':'#f5f5f5',borderColor:isDarkMode?'#ccc':'',borderWidth:isDarkMode?2:0}]}>
+            <Text style={[styles.modalTitle,{color:isDarkMode?'white':'black'}]}>
+              Enter Playlist Name
             </Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input,{color:isDarkMode?'white':'black'}]}
               placeholder="Playlist Name"
               value={newPlaylistName}
               onChangeText={setNewPlaylistName}
+              placeholderTextColor={isDarkMode?'white':'black'}
             />
             <View style={styles.modalButtons}>
-              <Button title="Cancel" onPress={() => setModalVisible(false)} />
-              <Button title="OK" onPress={addNewPlaylist} />
+            <TouchableOpacity
+               style={[styles.button, { backgroundColor: isDarkMode ? '#555' : '#48A2EB' }]}
+               onPress={() => setModalVisible(false)}
+               >
+              <Text style={{ color: isDarkMode ? 'white' : 'white' }}>Cancel</Text>
+              </TouchableOpacity>
+
+             <TouchableOpacity
+             style={[styles.button, { backgroundColor: isDarkMode ? '#555' : '#48A2EB' }]}
+             onPress={addNewPlaylist}
+           >
+        <Text style={{ color: isDarkMode ? 'white' : 'white' }}>OK</Text>
+      </TouchableOpacity>
               {/* <TouchableOpacity><Text>ok</Text></TouchableOpacity> */}
             </View>
           </View>
         </View>
       </Modal>
+{/*rename model*/}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={renamemodel}
+        onRequestClose={() => setRenamemodel(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={[styles.modalContent,{backgroundColor:isDarkMode?'black':'#f5f5f5',borderColor:isDarkMode?'#ccc':'',borderWidth:isDarkMode?2:0}]}>
+            <Text style={[styles.modalTitle,{color:isDarkMode?'white':'black'}]}>
+              Enter New Playlist Name
+            </Text>
+            <TextInput
+              style={[styles.input,{color:isDarkMode?'white':'black'}]}
+              placeholder="New Playlist Name"
+              value={newPlaylistName}
+              onChangeText={setNewPlaylistName}
+              placeholderTextColor={isDarkMode?'white':'black'}
+              
+            />
+            <View style={styles.modalButtons}>
+            <TouchableOpacity
+               style={[styles.button, { backgroundColor: isDarkMode ? '#555' : '#48A2EB' }]}
+               onPress={() => setRenamemodel(false)}
+               >
+              <Text style={{ color: isDarkMode ? 'white' : 'white' }}>Cancel</Text>
+              </TouchableOpacity>
 
+             <TouchableOpacity
+             style={[styles.button, { backgroundColor: isDarkMode ? '#555' : '#48A2EB' }]}
+             onPress={renamePlaylist}
+           >
+        <Text style={{ color: isDarkMode ? 'white' : 'white' }}>OK</Text>
+      </TouchableOpacity>
+              {/* <TouchableOpacity><Text>ok</Text></TouchableOpacity> */}
+            </View>
+          </View>
+        </View>
+      </Modal>
+{/* model for image name input*/}
       {newPlaylistName && <Modal
         animationType="slide"
         transparent={true}
         visible={FileName_modalVisible}
         onRequestClose={() => setFileName_modalVisible(false)}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Enter filename</Text>
+        <View style={[styles.modalContainer,]}>
+          <View style={[styles.modalContent,{backgroundColor:isDarkMode?'black':'#f5f5f5',borderColor:isDarkMode?'#ccc':'',borderWidth:isDarkMode?2:0}]}>
+            <Text style={[styles.modalTitle,{color:isDarkMode?'white':'black'}]}>Enter filename</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input,{color:isDarkMode?'white':'black'}]}
               placeholder={`${newPlaylistName}_5...jpg`}
               value={image_filename}
               onChangeText={setImage_filename}
+              placeholderTextColor={isDarkMode?'white':'black'}
             />
-            <View style={{}}>
-              <TouchableOpacity 
-               style={{height:32,width:'100%',flexDirection:'row',marginBottom:14}}
-               onPress={Handle_checkbox_click}
-               >
-               <ImageBackground
-               source={toggle_FileName_Checkbox ? require('../public/checkbox.png') : require('../public/unchecked.png')}
-               style={{height:'95%',width:22}}
-               > 
-               <View style={styles.checkbox}></View>
-               </ImageBackground>
-               <View style={{justifyContent:'center',flex:1}}><Text style={{paddingLeft:10,fontSize:14}}>Apply this name to all next photos</Text></View>
-              </TouchableOpacity>
+             <View style={{ backgroundColor: isDarkMode ? '#333' : '#fff', padding: 20 }}>
+      <TouchableOpacity 
+        style={{ height: 32, width: '100%', flexDirection: 'row', marginBottom: 14}}
+        onPress={Handle_checkbox_click}
+      >
+        <ImageBackground
+          source={toggle_FileName_Checkbox ? require('../public/checkbox.png') : require('../public/unchecked.png')}
+          style={{ height: '95%', width: 22, }}
+        > 
+          <View style={{ height: '100%', width: '100%' }}></View>
+        </ImageBackground>
+        <View style={{ justifyContent: 'center', flex: 1 }}>
+          <Text style={{ paddingLeft: 10, fontSize: 14, color: isDarkMode ? '#fff' : '#000' }}>
+            Apply this name to all next photos
+          </Text>
+        </View>
+      </TouchableOpacity>
 
-            {toggle_FileName_Checkbox && 
-            <>
-            <Text style={styles.modalTitle}>Please enter the starting number for the filename sequence:</Text>
-            <TextInput
-             style={styles.input}
-             placeholder="1,2,4,5,..."
-             value={filename_start_no === '' ? '' : String(filename_start_no)}
-             onChangeText={(text) => setFilename_start_no(text === '' ? '' : parseInt(text, 10))}
-            />
-            </>
-            }
+      {toggle_FileName_Checkbox && 
+        <>
+          <Text style={{ fontSize: 16, color: isDarkMode ? '#fff' : '#000', marginBottom: 8 }}>
+            Please enter the starting number for the filename sequence:
+          </Text>
+          <TextInput
+            style={{
+              height: 40,
+              borderColor: isDarkMode ? '#fff' : '#000',
+              borderWidth: 1,
+              borderRadius: 5,
+              marginBottom:14,
+              paddingHorizontal: 10,
+              color: isDarkMode ? '#fff' : '#000',
+              backgroundColor: isDarkMode ? '#444' : '#f5f5f5'
+            }}
+            placeholder="1, 2, 4, 5, ..."
+            value={filename_start_no === '' ? '' : String(filename_start_no)}
+            onChangeText={(text) => setFilename_start_no(text === '' ? '' : parseInt(text, 10))}
+            placeholderTextColor={isDarkMode ? '#ccc' : '#888'}
+          />
+        </>
+      }
 
-              <Button title="ok" onPress={Handle_filename_filling} />
-              
-            </View>
+      <Button title="OK" onPress={Handle_filename_filling} color={isDarkMode ? '#444' : '#007AFF'} />
+    </View>
           </View>
         </View>
       </Modal>}
@@ -347,6 +433,16 @@ const styles = StyleSheet.create({
   width:24,
   },
 
+  button: {
+    width:'40%',          
+    height: 45,             
+    paddingVertical: 10,    
+    marginTop: 10,          
+    borderRadius: 8,        
+    justifyContent: 'center', 
+    alignItems: 'center', 
+       
+  },
   header: {
     padding: 12,
     alignItems: 'center',

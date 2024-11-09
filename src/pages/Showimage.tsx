@@ -1,6 +1,8 @@
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Modal, Alert, TextInput, Button } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import RNFS from 'react-native-fs';
+import { useColorScheme } from 'react-native';
+
 
 const Showimage = ({ route, navigation }) => {
   const { playlist, playlistname } = route.params;
@@ -9,6 +11,11 @@ const Showimage = ({ route, navigation }) => {
   const [renameModalVisible, setRenameModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [input, setInput] = useState('');
+
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
+
+ console.log("check the params playlist",playlist,"name",playlistname)
 
   useEffect(() => {
     const loadImages = async () => {
@@ -80,13 +87,13 @@ const Showimage = ({ route, navigation }) => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container,{backgroundColor:isDarkMode?'black':'white'}]}>
     
       <View style={styles.header}>
-        <TouchableOpacity style={{borderRadius:4,height:32,borderColor:'black',borderWidth:2,width:50,justifyContent:'center',alignItems:'center'}} onPress={() => navigation.goBack()}>
-          <Text style={{fontSize:18}}>{`<--`}</Text>
+        <TouchableOpacity style={{borderRadius:4,height:32,borderColor:!isDarkMode?'black':'#f5f5f5',borderWidth:2,width:50,justifyContent:'center',alignItems:'center'}} onPress={() => navigation.goBack()}>
+          <Text style={{fontSize:18,color:!isDarkMode?'black':'#f5f5f5'}}>{`<--`}</Text>
         </TouchableOpacity>
-        <Text style={styles.playlistText}>{playlistname}</Text>
+        <Text style={[styles.playlistText,{color:!isDarkMode?'black':'#f5f5f5'}]}>{playlistname}</Text>
       </View>
 
       {images.length > 0 ? (
@@ -109,15 +116,15 @@ const Showimage = ({ route, navigation }) => {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
+          <View style={[styles.modalContainer,{backgroundColor:isDarkMode?'black':'#f5f5f5',borderColor:isDarkMode?'#ccc':'',borderWidth:isDarkMode?2:0}]}>
             <TouchableOpacity
               style={styles.modalButton}
               onPress={() => setRenameModalVisible(true)}
             >
-              <Text style={styles.modalButtonText}>Rename</Text>
+              <Text style={[styles.modalButtonText,{color:isDarkMode?'white':'blue'}]}>Rename</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.modalButton} onPress={handleDelete}>
-              <Text style={styles.modalButtonText}>Delete</Text>
+              <Text style={[styles.modalButtonText,{color:isDarkMode?'white':'blue'}]}>Delete</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -131,17 +138,29 @@ const Showimage = ({ route, navigation }) => {
         onRequestClose={() => setRenameModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.renameModalContainer}>
-            <Text style={styles.renameTitle}>Rename Image</Text>
+          <View style={[styles.renameModalContainer,{backgroundColor:isDarkMode?'black':'#f5f5f5',borderColor:isDarkMode?'#ccc':'',borderWidth:isDarkMode?2:0}]}>
+            <Text style={[styles.renameTitle,{color:isDarkMode?'white':'black',marginBottom:12,fontWeight:'bold'}]}>Rename Image</Text>
             <TextInput
-              style={styles.renameInput}
+              style={[styles.renameInput,{borderColor:isDarkMode?'white':'black'}]}
               placeholder="Enter new name"
               value={input}
               onChangeText={setInput}
+              placeholderTextColor={isDarkMode?'white':'black'}
             />
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
-              <Button title="Cancel" onPress={() => setRenameModalVisible(false)} />
-              <Button title="Rename" onPress={handleRename} />
+            <TouchableOpacity
+            style={[styles.button, { backgroundColor: isDarkMode ? '#444' : '#48A2EB' }]}
+            onPress={() => setRenameModalVisible(false)}
+          >
+            <Text style={{ color: isDarkMode ? 'white' : 'white' }}>Cancel</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: isDarkMode ? '#555' : '#48A2EB' }]}
+            onPress={handleRename}
+          >
+            <Text style={{ color: isDarkMode ? 'white' : 'white' }}>Rename</Text>
+          </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -154,6 +173,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
+  },
+
+  button: {
+    width:'40%',          
+    height: 45,             
+    paddingVertical: 10,    
+    marginTop: 10,          
+    borderRadius: 8,        
+    justifyContent: 'center', 
+    alignItems: 'center', 
+       
   },
   header: {
     flexDirection: 'row',
@@ -192,9 +222,9 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: '80%',
-    backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
+
   },
   modalButton: {
     padding: 10,

@@ -25,14 +25,14 @@ const App = () => {
     const iosStorageStatus = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);           
     console.log('iOS Camera permission:', iosCameraStatus);
     console.log('Storage permission:', storageStatus);
-    console.log('iOS Storage permission:', iosStorageStatus);
+    // console.log('iOS Storage permission:', iosStorageStatus);
     
     
-    const cameraCheck = await check(PERMISSIONS.ANDROID.CAMERA);
-    const storageCheck = await check(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE);
+    // const cameraCheck = await check(PERMISSIONS.ANDROID.CAMERA);
+    // const storageCheck = await check(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE);
 
-    console.log('Camera status:', cameraCheck);
-    console.log('Storage status:', storageCheck);
+    // console.log('Camera status:', cameraCheck);
+    // console.log('Storage status:', storageCheck);
   };
 
   return (
