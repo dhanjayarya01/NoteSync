@@ -82,7 +82,7 @@ const Showimage = ({ route, navigation }) => {
       style={styles.imageContainer}
     >
       <Image source={{ uri: item.uri }} style={styles.image} />
-      <Text style={{ marginLeft: 5, marginTop: 4 }}>{item.id}</Text>
+      <Text style={{ marginLeft: 5, marginTop: 4,color:isDarkMode?'white':'black' }}>{item.id}</Text>
     </TouchableOpacity>
   );
 
