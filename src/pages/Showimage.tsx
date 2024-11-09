@@ -1,8 +1,7 @@
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Modal, Alert, TextInput, Button } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Modal, Alert, TextInput, Button, Share } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import RNFS from 'react-native-fs';
 import { useColorScheme } from 'react-native';
-
 
 const Showimage = ({ route, navigation }) => {
   const { playlist, playlistname } = route.params;
@@ -14,8 +13,6 @@ const Showimage = ({ route, navigation }) => {
 
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
-
- console.log("check the params playlist",playlist,"name",playlistname)
 
   useEffect(() => {
     const loadImages = async () => {
@@ -74,6 +71,19 @@ const Showimage = ({ route, navigation }) => {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        url: selectedImage.uri,
+        message: 'Check out this image!',
+      });
+      setModalVisible(false);
+    } catch (error) {
+      console.error('Error sharing file:', error);
+      Alert.alert("Error", "Failed to share the image");
+    }
+  };
+
   const renderImage = ({ item, index }) => (
     <TouchableOpacity
       onPress={() => handleImagePress(index)}
@@ -82,18 +92,17 @@ const Showimage = ({ route, navigation }) => {
       style={styles.imageContainer}
     >
       <Image source={{ uri: item.uri }} style={styles.image} />
-      <Text style={{ marginLeft: 5, marginTop: 4,color:isDarkMode?'white':'black' }}>{item.id}</Text>
+      <Text style={{ marginLeft: 5, marginTop: 4, color: isDarkMode ? 'white' : 'black' }}>{item.id}</Text>
     </TouchableOpacity>
   );
 
   return (
-    <View style={[styles.container,{backgroundColor:isDarkMode?'black':'white'}]}>
-    
+    <View style={[styles.container, { backgroundColor: isDarkMode ? 'black' : 'white' }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={{borderRadius:4,height:32,borderColor:!isDarkMode?'black':'#f5f5f5',borderWidth:2,width:50,justifyContent:'center',alignItems:'center'}} onPress={() => navigation.goBack()}>
-          <Text style={{fontSize:18,color:!isDarkMode?'black':'#f5f5f5'}}>{`<--`}</Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Text style={{ fontSize: 18, color: !isDarkMode ? 'black' : '#f5f5f5' }}>{`<--`}</Text>
         </TouchableOpacity>
-        <Text style={[styles.playlistText,{color:!isDarkMode?'black':'#f5f5f5'}]}>{playlistname}</Text>
+        <Text style={[styles.playlistText, { color: !isDarkMode ? 'black' : '#f5f5f5' }]}>{playlistname}</Text>
       </View>
 
       {images.length > 0 ? (
@@ -116,15 +125,15 @@ const Showimage = ({ route, navigation }) => {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer,{backgroundColor:isDarkMode?'black':'#f5f5f5',borderColor:isDarkMode?'#ccc':'',borderWidth:isDarkMode?2:0}]}>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => setRenameModalVisible(true)}
-            >
-              <Text style={[styles.modalButtonText,{color:isDarkMode?'white':'blue'}]}>Rename</Text>
+          <View style={[styles.modalContainer, { backgroundColor: isDarkMode ? 'black' : '#f5f5f5', borderColor: isDarkMode ? '#ccc' : '', borderWidth: isDarkMode ? 2 : 0 }]}>
+            <TouchableOpacity style={styles.modalButton} onPress={handleShare}>
+              <Text style={[styles.modalButtonText, { color: isDarkMode ? 'white' : 'blue' }]}>Share</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modalButton} onPress={() => setRenameModalVisible(true)}>
+              <Text style={[styles.modalButtonText, { color: isDarkMode ? 'white' : 'blue' }]}>Rename</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.modalButton} onPress={handleDelete}>
-              <Text style={[styles.modalButtonText,{color:isDarkMode?'white':'blue'}]}>Delete</Text>
+              <Text style={[styles.modalButtonText, { color: isDarkMode ? 'white' : 'blue' }]}>Delete</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -138,29 +147,22 @@ const Showimage = ({ route, navigation }) => {
         onRequestClose={() => setRenameModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.renameModalContainer,{backgroundColor:isDarkMode?'black':'#f5f5f5',borderColor:isDarkMode?'#ccc':'',borderWidth:isDarkMode?2:0}]}>
-            <Text style={[styles.renameTitle,{color:isDarkMode?'white':'black',marginBottom:12,fontWeight:'bold'}]}>Rename Image</Text>
+          <View style={[styles.renameModalContainer, { backgroundColor: isDarkMode ? 'black' : '#f5f5f5', borderColor: isDarkMode ? '#ccc' : '', borderWidth: isDarkMode ? 2 : 0 }]}>
+            <Text style={[styles.renameTitle, { color: isDarkMode ? 'white' : 'black', marginBottom: 12, fontWeight: 'bold' }]}>Rename Image</Text>
             <TextInput
-              style={[styles.renameInput,{borderColor:isDarkMode?'white':'black'}]}
+              style={[styles.renameInput, { borderColor: isDarkMode ? 'white' : 'black' }]}
               placeholder="Enter new name"
               value={input}
               onChangeText={setInput}
-              placeholderTextColor={isDarkMode?'white':'black'}
+              placeholderTextColor={isDarkMode ? 'white' : 'black'}
             />
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
-            <TouchableOpacity
-            style={[styles.button, { backgroundColor: isDarkMode ? '#444' : '#48A2EB' }]}
-            onPress={() => setRenameModalVisible(false)}
-          >
-            <Text style={{ color: isDarkMode ? 'white' : 'white' }}>Cancel</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: isDarkMode ? '#555' : '#48A2EB' }]}
-            onPress={handleRename}
-          >
-            <Text style={{ color: isDarkMode ? 'white' : 'white' }}>Rename</Text>
-          </TouchableOpacity>
+              <TouchableOpacity style={[styles.button, { backgroundColor: isDarkMode ? '#444' : '#48A2EB' }]} onPress={() => setRenameModalVisible(false)}>
+                <Text style={{ color: isDarkMode ? 'white' : 'white' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.button, { backgroundColor: isDarkMode ? '#555' : '#48A2EB' }]} onPress={handleRename}>
+                <Text style={{ color: isDarkMode ? 'white' : 'white' }}>Rename</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -170,88 +172,30 @@ const Showimage = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 10,
-  },
-
+  container: { flex: 1, padding: 10 },
   button: {
-    width:'40%',          
-    height: 45,             
-    paddingVertical: 10,    
-    marginTop: 10,          
-    borderRadius: 8,        
-    justifyContent: 'center', 
-    alignItems: 'center', 
-       
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  playlistText: {
-    fontSize: 20,
-    marginLeft: '30%',
-    
-  },
-  row: {
-    justifyContent: 'space-between',
-  },
-  imageContainer: {
-    flex: 1,
-    margin: 5,
-    marginBottom: 7,
-  },
-  image: {
-    width: '100%',
-    height: 100,
-    borderRadius: 10,
-  },
-  noImageText: {
-    fontSize: 16,
-    color: 'gray',
-    textAlign: 'center',
-    marginTop: 20,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    width: '40%',
+    height: 45,
+    paddingVertical: 10,
+    marginTop: 10,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modalContainer: {
-    width: '80%',
-    padding: 20,
-    borderRadius: 10,
-
-  },
-  modalButton: {
-    padding: 10,
-  },
-  modalButtonText: {
-    fontSize: 18,
-    color: 'blue',
-    textAlign: 'center',
-  },
-  renameModalContainer: {
-    width: '80%',
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  renameTitle: {
-    fontSize: 18,
-    marginBottom: 10,
-  },
-  renameInput: {
-    width: '100%',
-    borderBottomWidth: 1,
-    marginBottom: 15,
-    fontSize: 16,
-    padding: 5,
-  },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  backButton: { borderRadius: 4, height: 32, borderColor: 'black', borderWidth: 2, width: 50, justifyContent: 'center', alignItems: 'center' },
+  playlistText: { fontSize: 20, marginLeft: '30%' },
+  row: { justifyContent: 'space-between' },
+  imageContainer: { flex: 1, margin: 5, marginBottom: 7 },
+  image: { width: '100%', height: 100, borderRadius: 10 },
+  noImageText: { fontSize: 16, color: 'gray', textAlign: 'center', marginTop: 20 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  modalContainer: { width: '80%', padding: 20, borderRadius: 10 },
+  modalButton: { padding: 10 },
+  modalButtonText: { fontSize: 18, fontWeight: 'bold', textAlign: 'center' },
+  renameModalContainer: { width: '80%', padding: 20, borderRadius: 10 },
+  renameTitle: { fontSize: 18, textAlign: 'center' },
+  renameInput: { height: 40, borderColor: 'gray', borderWidth: 1, borderRadius: 8, padding: 10, marginBottom: 15, color: 'black' },
 });
 
 export default Showimage;

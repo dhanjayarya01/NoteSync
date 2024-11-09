@@ -7,8 +7,12 @@ const { width, height } = Dimensions.get('window');
 const Fullimage = ({ route }) => {
   const { images, initialIndex } = route.params;
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [scale, setScale] = useState(1);  
-  const [previousScale, setPreviousScale] = useState(1);  
+  const [scale, setScale] = useState(1);
+  const [previousScale, setPreviousScale] = useState(1);
+  const [translateX, setTranslateX] = useState(0);
+  const [translateY, setTranslateY] = useState(0);
+  const [lastTranslateX, setLastTranslateX] = useState(0);
+  const [lastTranslateY, setLastTranslateY] = useState(0);
 
   const handleSwipe = (direction) => {
     if (direction === 'left' && currentIndex < images.length - 1) {
@@ -29,28 +33,48 @@ const Fullimage = ({ route }) => {
     }
   };
 
-  
   const onPinchGestureEvent = (event) => {
     const newScale = previousScale * event.nativeEvent.scale;
-    setScale(newScale);  
+    setScale(newScale);
   };
 
   const onPinchStateChange = (event) => {
     if (event.nativeEvent.state === State.END) {
-      setPreviousScale(scale);  
+      setPreviousScale(scale);
+    }
+  };
+
+  const onPanGestureEvent = (event) => {
+    if (scale > 1) {
+      setTranslateX(lastTranslateX + event.nativeEvent.translationX);
+      setTranslateY(lastTranslateY + event.nativeEvent.translationY);
+    }
+  };
+
+  const onPanStateChange = (event) => {
+    if (event.nativeEvent.state === State.END) {
+      setLastTranslateX(translateX);
+      setLastTranslateY(translateY);
     }
   };
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <PanGestureHandler onHandlerStateChange={onSwipeStateChange}>
-        <PinchGestureHandler
-          onGestureEvent={onPinchGestureEvent}
-          onHandlerStateChange={onPinchStateChange}>
+      <PanGestureHandler onGestureEvent={onPanGestureEvent} onHandlerStateChange={onPanStateChange}>
+        <PinchGestureHandler onGestureEvent={onPinchGestureEvent} onHandlerStateChange={onPinchStateChange}>
           <View style={styles.container}>
             <Image
               source={{ uri: images[currentIndex].uri }}
-              style={[styles.fullImage, { transform: [{ scale: scale }] }]}  
+              style={[
+                styles.fullImage,
+                {
+                  transform: [
+                    { scale: scale },
+                    { translateX: translateX },
+                    { translateY: translateY },
+                  ],
+                },
+              ]}
             />
             <Text style={styles.imageText}>{images[currentIndex].id}</Text>
           </View>
